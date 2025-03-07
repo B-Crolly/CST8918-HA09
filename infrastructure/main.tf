@@ -17,7 +17,7 @@ provider "azurerm" {
   features {}
 }
 
-# Create a resource group
+# Create a resource group - fixed error
 resource "azurerm_resource_group" "rg" {
   name     = "ha09-resources"
   location = "canadacentral"
