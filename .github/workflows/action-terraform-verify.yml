@@ -15,20 +15,7 @@ jobs:
     name: terraform fmt check
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          
-      - name: Fetch all branches
-        run: |
-          git remote set-branches origin '*'
-          git fetch origin
-          
-      - name: Fetch changed files
-        id: pr_files
-        uses: jitterbit/get-changed-files@v1
-        with:
-          format: "space-delimited"
-          
+        
       - name: Configure terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -37,13 +24,11 @@ jobs:
       - name: Validate terraform fmt
         run: |
           EXIT_CODE=0
-          for changed_file in ${{ steps.pr_files.outputs.added_modified }}; do
-            if [[ $changed_file == *.tf ]]; then
-              echo "Checking terraform fmt on ${changed_file}..."
-              if ! terraform fmt -check "$changed_file"; then
-                echo "::error::❌ Terraform formatting failed for ${changed_file}"
-                EXIT_CODE=1
-              fi
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.tf$' | while read file; do
+            echo "Checking terraform fmt on ${file}..."
+            if [ -f "$file" ] && ! terraform fmt -check "$file"; then
+              echo "::error::❌ Terraform formatting failed for ${file}"
+              EXIT_CODE=1
             fi
           done
           exit $EXIT_CODE

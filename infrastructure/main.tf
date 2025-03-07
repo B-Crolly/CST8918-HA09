@@ -19,8 +19,7 @@ provider "azurerm" {
 
 # Create a resource group - fixed error
 resource "azurerm_resource_group" "rg" {
-  name     = "ha09-resources"
-  location = "canadacentralis"
+  name = "ha09-resources"
 }
 
 # Create a storage account
