@@ -1,3 +1,28 @@
-terraform fmt -check -recursive
-terraform validate
-tflint
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+cd infrastructure
+
+# Run terraform fmt check
+if ! terraform fmt -check -recursive; then
+    echo "❌ Terraform formatting check failed. Please run 'terraform fmt' to fix"
+    exit 1
+fi
+
+# Run terraform validate
+if ! terraform validate; then
+    echo "❌ Terraform validation failed"
+    exit 1
+fi
+
+# Run tflint if available
+if command -v tflint >/dev/null 2>&1; then
+    if ! tflint; then
+        echo "❌ TFLint check failed"
+        exit 1
+    fi
+else
+    echo "⚠️ TFLint not installed - skipping lint checks"
+fi
+
+echo "✅ All Terraform checks passed!"
