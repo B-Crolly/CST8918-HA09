@@ -10,14 +10,14 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  format:
     runs-on: ubuntu-latest
     name: terraform fmt check
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
+          
       - name: Fetch all branches
         run: |
           git remote set-branches origin '*'
@@ -47,3 +47,44 @@ jobs:
             fi
           done
           exit $EXIT_CODE
+
+  validate:
+    runs-on: ubuntu-latest
+    name: terraform validate
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Configure terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.2.4
+          
+      - name: Terraform Init
+        working-directory: ./infrastructure
+        run: terraform init -backend=false
+        
+      - name: Terraform Validate
+        working-directory: ./infrastructure
+        run: |
+          if ! terraform validate; then
+            echo "::error::❌ Terraform validation failed"
+            exit 1
+          fi
+          
+      - name: Run tflint
+        uses: terraform-linters/setup-tflint@v3
+        
+      - name: Show tflint version
+        run: tflint --version
+        
+      - name: Init tflint
+        working-directory: ./infrastructure
+        run: tflint --init
+        
+      - name: Run tflint
+        working-directory: ./infrastructure
+        run: |
+          if ! tflint -f compact; then
+            echo "::error::❌ TFLint found issues"
+            exit 1
+          fi
