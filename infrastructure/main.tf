@@ -15,7 +15,7 @@ provider "azurerm" {
 # Create a resource group
 resource "azurerm_resource_group" "rg" {
   name     = "ha09-resources"
-  location = "canadacentral"
+  location = "canadacentral";;
 }
 
 # Create a storage account
